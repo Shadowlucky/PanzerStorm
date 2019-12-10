@@ -1,8 +1,8 @@
 import pygame
-from bourd import Board
+from board import Board
 
 
-class Life(Board):
+class Tanks(Board):
     def __init__(self, width, height):
         super().__init__(width, height)
         self.hg_color = pygame.Color('black')
@@ -52,7 +52,7 @@ clock = pygame.time.Clock()
 fps = 1
 size = width, height = w * cell_size, h * cell_size
 screen = pygame.display.set_mode(size)
-board = Life(w, h)
+board = Tanks(w, h)
 board.set_view(0, 0, cell_size)
 running = True
 while running:
