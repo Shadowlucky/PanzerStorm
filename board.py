@@ -51,7 +51,3 @@ class Board:
         if cell:
             self.on_click(cell)
 
-    def get_click2(self, mouse_pos):
-        cell = self.get_cell(mouse_pos)
-        if cell:
-            self.on_click2(cell)
