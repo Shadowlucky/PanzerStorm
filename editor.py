@@ -66,7 +66,7 @@ class Editor(Board):
 pygame.init()
 # w, h = map(int, input().split())
 # file = input()
-w, h = 50, 30
+w, h = 10, 10
 file = 'map_cod.txt'
 size = width, height = w * 20, h * 20
 screen = pygame.display.set_mode(size)
