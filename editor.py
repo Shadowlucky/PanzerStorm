@@ -61,12 +61,10 @@ class Editor(Board):
             self.board[cell[1]][cell[0]] = 0
 
 
-
-
 pygame.init()
 # w, h = map(int, input().split())
 # file = input()
-w, h = 30, 30
+w, h = 20, 20 # Размер карты
 file = 'map_cod.txt'
 size = width, height = w * 20, h * 20
 screen = pygame.display.set_mode(size)
