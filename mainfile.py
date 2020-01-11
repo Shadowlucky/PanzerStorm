@@ -22,7 +22,8 @@ def blitRotate(surf, image, pos, originPos, angle):
     pivot_move = pivot_rotate - pivot
 
     # calculate the upper left origin of the rotated image
-    origin = (pos[0] - originPos[0] + min_box[0] - pivot_move[0], pos[1] - originPos[1] - max_box[1] + pivot_move[1])
+    origin = (pos[0] - originPos[0] + min_box[0] - pivot_move[0], pos[1] - originPos[1] -
+              max_box[1] + pivot_move[1])
 
     # get a rotated image
     rotated_image = pygame.transform.rotate(image, angle)
@@ -58,7 +59,7 @@ class Game_stage(Board):
                     self.top + row * self.cell_size,
                     self.cell_size, self.cell_size
                 )
-                if self.time_for_map == w * h:
+                if self.time_for_map == w1 * h1:
                     self.time_for_map = 0
                 if srt_map[self.time_for_map] == '0':
                     pygame.draw.rect(screen, self.free_color, rect, 1)
@@ -205,8 +206,8 @@ boom_sound = pygame.mixer.Sound('data/boom.wav')
 # pygame.mixer.music.load('data/Test.mp3')
 # pygame.mixer.music.play()
 # работаем с файлом карты
-f = open('data/map_code.txt', 'r')
-w, h = list(map(int, f.readline().split()))
+f = open('data/map_cod.txt', 'r')
+w1, h1 = list(map(int, f.readline().split()))
 srt_map = f.read().strip().split(',')
 # работа с фпс
 clock = pygame.time.Clock()
@@ -217,9 +218,9 @@ center = (width1 // 1 - 95 + 1, height1 // 1 - 75 + 1)
 center_r = width1 // 2
 center_b = height1 // 2
 size2 = width2, height2 = 600, 600
-cell_size = width2 // w
-cell_size2 = [int(width2 // w), int(height2 // h)]
-size = width, height = cell_size2[0] * w, cell_size2[1] * h
+cell_size = width2 // w1
+cell_size2 = [int(width2 // w1), int(height2 // h1)]
+size = width, height = cell_size2[0] * w1, cell_size2[1] * h1
 free_color = pygame.Color('gray')
 punkts = [(center_r - 450, center_b, u'Play', (250, 250, 250), (0, 0, 0), 2),
           (center_r - 450, center_b + 100, u'Settings', (250, 250, 250), (0, 0, 0), 1),
@@ -250,7 +251,7 @@ load = Loading_stage(punkts2)
 load.menu()
 # настраиваем доску
 window = pygame.display.set_mode(size)
-board = Game_stage(w, h)
+board = Game_stage(w1, h1)
 board.set_view(0, 0, cell_size)
 # запускаем
 font = pygame.font.SysFont('Times New Roman', 50)
@@ -268,7 +269,8 @@ done = False
 pos = [screen.get_width() / 2, screen.get_height() / 2]
 while not done:
     clock.tick(60)
-    screen.fill(0)
+    screen.fill(1)
+    board.render(screen)
     blitRotate(screen, image2, pos, (w / 2 + 100, h / 2 + 30), angle)
     blitRotate(screen, image, pos, (w / 2, h / 2), angle)
     for event in pygame.event.get():
