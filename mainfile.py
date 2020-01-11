@@ -8,30 +8,20 @@ import pygame
 from board import Board
 
 
+# Поворот танка
 def blitRotate(surf, image, pos, originPos, angle):
-    # calcaulate the axis aligned bounding box of the rotated image
     w, h = image.get_size()
     box = [pygame.math.Vector2(p) for p in [(0, 0), (w, 0), (w, -h), (0, -h)]]
     box_rotate = [p.rotate(angle) for p in box]
     min_box = (min(box_rotate, key=lambda p: p[0])[0], min(box_rotate, key=lambda p: p[1])[1])
     max_box = (max(box_rotate, key=lambda p: p[0])[0], max(box_rotate, key=lambda p: p[1])[1])
-
-    # calculate the translation of the pivot
     pivot = pygame.math.Vector2(originPos[0], -originPos[1])
     pivot_rotate = pivot.rotate(angle)
     pivot_move = pivot_rotate - pivot
-
-    # calculate the upper left origin of the rotated image
     origin = (pos[0] - originPos[0] + min_box[0] - pivot_move[0], pos[1] - originPos[1] -
               max_box[1] + pivot_move[1])
-
-    # get a rotated image
     rotated_image = pygame.transform.rotate(image, angle)
-
-    # rotate and blit the image
     surf.blit(rotated_image, origin)
-
-    # draw rectangle around the image
 
 
 class Game_stage(Board):
@@ -103,7 +93,7 @@ class Menu_Stage:
     # функция меню
     def menu(self):
         done = True
-        font_menu = pygame.font.init()
+        pygame.font.init()
         font_menu = pygame.font.SysFont('Metal Gear', 50)
         punkt = 0
         while done:
@@ -206,7 +196,7 @@ boom_sound = pygame.mixer.Sound('data/boom.wav')
 # pygame.mixer.music.load('data/Test.mp3')
 # pygame.mixer.music.play()
 # работаем с файлом карты
-f = open('data/map_cod.txt', 'r')
+f = open('data/map_code.txt', 'r')
 w1, h1 = list(map(int, f.readline().split()))
 srt_map = f.read().strip().split(',')
 # работа с фпс
@@ -280,15 +270,15 @@ while not done:
             if event.key == pygame.K_ESCAPE:
                 done = True
     abuttons = pygame.key.get_pressed()
-    if abuttons[pygame.K_UP]:
+    if abuttons[pygame.K_UP] or abuttons[pygame.K_w]:
         pos[1] -= math.cos((angle * math.pi) / 180)
         pos[0] -= math.sin((angle * math.pi) / 180)
-    if abuttons[pygame.K_DOWN]:
+    if abuttons[pygame.K_DOWN] or abuttons[pygame.K_s]:
         pos[1] += math.cos((angle * math.pi) / 180)
         pos[0] += math.sin((angle * math.pi) / 180)
-    if abuttons[pygame.K_LEFT]:
+    if abuttons[pygame.K_LEFT] or abuttons[pygame.K_a]:
         angle += 1
-    if abuttons[pygame.K_RIGHT]:
+    if abuttons[pygame.K_RIGHT] or abuttons[pygame.K_d]:
         angle += -1
 
     pygame.display.flip()
