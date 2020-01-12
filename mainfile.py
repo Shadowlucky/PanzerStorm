@@ -188,6 +188,46 @@ class Loading_stage:
                 done = False
 
 
+class AnimatedSprite(pygame.sprite.Sprite):
+    def __init__(self, sheet, columns, rows, x, y):
+        super().__init__(all_sprites)
+        self.frames = []
+        self.cut_sheet(sheet, columns, rows)
+        self.cur_frame = 1
+        self.image = self.frames[self.cur_frame]
+        self.rect = self.rect.move(x, y)
+
+    def cut_sheet(self, sheet, columns, rows):
+        self.rect = pygame.Rect(0, 0, sheet.get_width() // columns,
+                                sheet.get_height() // rows)
+        for j in range(rows):
+            for i in range(columns):
+                frame_location = (self.rect.w * i, self.rect.h * j)
+                self.frames.append(sheet.subsurface(pygame.Rect(
+                    frame_location, self.rect.size)))
+
+    def update(self, posish):
+        if self.cur_frame > 7:
+            self.cur_frame = 1
+        self.cur_frame = (self.cur_frame + 1) % len(self.frames)
+        if posish == 0:
+            self.image = self.frames[self.cur_frame]
+            self.image = pygame.transform.rotate(self.image, 0)
+            self.image = pygame.transform.scale(self.image, (cell_size - 1, cell_size - 1))
+        elif posish == 1:
+            self.image = self.frames[self.cur_frame]
+            self.image = pygame.transform.rotate(self.image, 180)
+            self.image = pygame.transform.scale(self.image, (cell_size - 1, cell_size - 1))
+        elif posish == 2:
+            self.image = self.frames[self.cur_frame]
+            self.image = pygame.transform.rotate(self.image, 90)
+            self.image = pygame.transform.scale(self.image, (cell_size - 1, cell_size - 1))
+        elif posish == 3:
+            self.image = self.frames[self.cur_frame]
+            self.image = pygame.transform.rotate(self.image, 270)
+            self.image = pygame.transform.scale(self.image, (cell_size - 1, cell_size - 1))
+
+
 # загружаем pygame
 pygame.init()
 # звук
@@ -244,43 +284,51 @@ window = pygame.display.set_mode(size)
 board = Game_stage(w1, h1)
 board.set_view(0, 0, cell_size)
 # запускаем
+all_sprites = pygame.sprite.Group()
 font = pygame.font.SysFont('Times New Roman', 50)
-image = load_image('object.png', -1)
-image2 = load_image('Caterpillar.png', -1)
-
-SPEED = 1
-
-image2.blit(image2, (1, 1))
-image.blit(image, (1, 1))
-w, h = image.get_size()
-
-angle = 0
-done = False
 pos = [screen.get_width() / 2, screen.get_height() / 2]
+
+done = False
+count_frames = 2
+rect = AnimatedSprite(load_image("kadr_tank.png", -1), 8, 4, 84, 84).rect
+
 while not done:
     clock.tick(60)
-    screen.fill(1)
+    screen.fill(0)
     board.render(screen)
-    blitRotate(screen, image2, pos, (w / 2 + 100, h / 2 + 30), angle)
-    blitRotate(screen, image, pos, (w / 2, h / 2), angle)
+    abuttons = pygame.key.get_pressed()
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             done = True
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
                 done = True
-    abuttons = pygame.key.get_pressed()
-    if abuttons[pygame.K_UP] or abuttons[pygame.K_w]:
-        pos[1] -= math.cos((angle * math.pi) / 180)
-        pos[0] -= math.sin((angle * math.pi) / 180)
-    if abuttons[pygame.K_DOWN] or abuttons[pygame.K_s]:
-        pos[1] += math.cos((angle * math.pi) / 180)
-        pos[0] += math.sin((angle * math.pi) / 180)
-    if abuttons[pygame.K_LEFT] or abuttons[pygame.K_a]:
-        angle += 1
-    if abuttons[pygame.K_RIGHT] or abuttons[pygame.K_d]:
-        angle += -1
-
+            if event.key == pygame.K_SPACE:
+                pygame.draw.rect(screen, grey_color, (20, 20, 100, 75))
+    if abuttons[pygame.K_UP]:
+        rect[1] += -1
+        count_frames += 1
+        if count_frames % 6 == 0:
+            all_sprites.update(0)
+    elif abuttons[pygame.K_DOWN]:
+        rect[1] += 1
+        count_frames -= 1
+        if count_frames % 6 == 0:
+            all_sprites.update(1)
+    elif abuttons[pygame.K_LEFT]:
+        rect[0] -= 1
+        count_frames += 1
+        if count_frames % 6 == 0:
+            all_sprites.update(2)
+    elif abuttons[pygame.K_RIGHT]:
+        rect[0] += 1
+        count_frames += 1
+        if count_frames % 6 == 0:
+            all_sprites.update(3)
+    elif abuttons[pygame.KMOD_LSHIFT]:
+        print(1)
+        pass
+    all_sprites.draw(screen)
     pygame.display.flip()
     pygame.event.pump()
 
