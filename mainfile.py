@@ -70,6 +70,8 @@ class Game_stage(Board):
 # цвета
 grey_color = pygame.Color('grey')
 black_color = pygame.Color('black')
+color_background = pygame.Color('black')
+color_triangle = pygame.Color('yellow')
 
 
 class Menu_Stage:
@@ -189,13 +191,16 @@ class Loading_stage:
 
 
 class AnimatedSprite(pygame.sprite.Sprite):
-    def __init__(self, sheet, columns, rows, x, y):
+    def __init__(self, sheet, columns, rows, x, y, num_sp):
         super().__init__(all_sprites)
         self.frames = []
         self.cut_sheet(sheet, columns, rows)
         self.cur_frame = 1
         self.image = self.frames[self.cur_frame]
         self.rect = self.rect.move(x, y)
+        self.image = pygame.transform.scale(self.image, (cell_size - 1, cell_size - 1))
+        self.num_image = self.frames[num_sp]
+        self.num_image = pygame.transform.scale(self.num_image, (cell_size, cell_size))
 
     def cut_sheet(self, sheet, columns, rows):
         self.rect = pygame.Rect(0, 0, sheet.get_width() // columns,
@@ -261,6 +266,19 @@ punkts2 = [(130, 150, u'PanzerStorm', (250, 250, 30), (250, 30, 250), 0)]
 screen = pygame.display.set_mode(size_for_main)
 window = pygame.display.set_mode(size_for_main)
 
+class Border(pygame.sprite.Sprite):
+    # строго вертикальный или строго горизонтальный отрезок
+    def __init__(self, x1, y1, x2, y2):
+        super().__init__(all_sprites)
+        if x1 == x2:  # вертикальная стенка
+            self.add(vertical_borders)
+            self.image = pygame.Surface([1, y2 - y1])
+            self.rect = pygame.Rect(x1, y1, 1, y2 - y1)
+        else:  # горизонтальная стенка
+            self.add(horizontal_borders)
+            self.image = pygame.Surface([x2 - x1, 1])
+            self.rect = pygame.Rect(x1, y1, x2 - x1, 1)
+
 
 def load_image(name, colorkey=None):
     fullname = os.path.join('data', name)
@@ -275,10 +293,10 @@ def load_image(name, colorkey=None):
 
 
 # вызываем
-game = Menu_Stage(punkts)
-game.menu()
-load = Loading_stage(punkts2)
-load.menu()
+# game = Menu_Stage(punkts)
+# game.menu()
+# load = Loading_stage(punkts2)
+# load.menu()
 # настраиваем доску
 window = pygame.display.set_mode(size)
 board = Game_stage(w1, h1)
@@ -286,11 +304,57 @@ board.set_view(0, 0, cell_size)
 # запускаем
 all_sprites = pygame.sprite.Group()
 font = pygame.font.SysFont('Times New Roman', 50)
-pos = [screen.get_width() / 2, screen.get_height() / 2]
+
+move = 1
+key_top, key_bottom, key_left, key_right = False, False, False, False
+keys = [key_top, key_bottom, key_left, key_right]
+values = {273: 'key_top', 274: 'key_bottom', 275: 'key_right', 276: 'key_left'}
+values_key = {'key_top': 'y - move', 'key_bottom': 'y + move',
+              'key_right': 'x + move', 'key_left': 'x - move'}
+
+horizontal_borders = pygame.sprite.Group()
+vertical_borders = pygame.sprite.Group()
+Border(0, 0, width, 0)
+Border(0, height, width, height)
+Border(0, 0, 0, height)
+Border(width, 0, width, height)
+
+walls = pygame.sprite.Group()
+wall = pygame.sprite.Sprite()
+wall.image = AnimatedSprite(load_image("kadr_tank.png", -1), 8, 4, 84, 84, 0).num_image
+wall.rect = wall.image.get_rect()
+wall.rect.x = 50
+wall.rect.y = 50
+walls.add(wall)
+wall = pygame.sprite.Sprite()
+wall.image = AnimatedSprite(load_image("kadr_tank.png", -1), 8, 4, 84, 84, 0).num_image
+wall.rect = wall.image.get_rect()
+wall.rect.x = 82
+wall.rect.y = 50
+walls.add(wall)
+wall = pygame.sprite.Sprite()
+wall.image = AnimatedSprite(load_image("kadr_tank.png", -1), 8, 4, 84, 84, 0).num_image
+wall.rect = wall.image.get_rect()
+wall.rect.x = 114
+wall.rect.y = 50
+walls.add(wall)
+wall = pygame.sprite.Sprite()
+wall.image = AnimatedSprite(load_image("kadr_tank.png", -1), 8, 4, 84, 84, 0).num_image
+wall.rect = wall.image.get_rect()
+wall.rect.x = 176
+wall.rect.y = 50
+walls.add(wall)
+wall = pygame.sprite.Sprite()
+wall.image = AnimatedSprite(load_image("kadr_tank.png", -1), 8, 4, 84, 84, 0).num_image
+wall.rect = wall.image.get_rect()
+wall.rect.x = 208
+wall.rect.y = 50
+walls.add(wall)
 
 done = False
+fps = 30
 count_frames = 2
-rect = AnimatedSprite(load_image("kadr_tank.png", -1), 8, 4, 84, 84).rect
+rect = AnimatedSprite(load_image("kadr_tank.png", -1), 8, 4, 84, 84, 0).rect
 
 while not done:
     clock.tick(60)
@@ -300,11 +364,6 @@ while not done:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             done = True
-        elif event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_ESCAPE:
-                done = True
-            if event.key == pygame.K_SPACE:
-                pygame.draw.rect(screen, grey_color, (20, 20, 100, 75))
     if abuttons[pygame.K_UP]:
         rect[1] += -1
         count_frames += 1
@@ -329,6 +388,7 @@ while not done:
         print(1)
         pass
     all_sprites.draw(screen)
+    walls.draw(screen)
     pygame.display.flip()
     pygame.event.pump()
 
