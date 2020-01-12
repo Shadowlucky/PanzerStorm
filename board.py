@@ -8,16 +8,16 @@ class Board:
         self.height = height
         self.board = [[0] * width for _ in range(height)]
         # значения по умолчанию
-        self.left = 20
-        self.top = 20
+        self.left = 10
+        self.top = 10
         self.cell_size = 30
         self.color = pygame.Color('white')
 
     # настройка внешнего вида
-    def set_view(self, left=20, top=20, cell_size=30):
+    def set_view(self, left=10, top=10, cell_size=30):
         self.left = left
         self.top = top
-        self.cell_size = cell_size[0]
+        self.cell_size = cell_size
 
     # Отрисовка клеточного поля на холсте
     def render(self, screen):
@@ -50,3 +50,4 @@ class Board:
         cell = self.get_cell(mouse_pos)
         if cell:
             self.on_click(cell)
+
