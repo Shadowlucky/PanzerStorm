@@ -5,109 +5,51 @@ import sys
 import math
 import pygame
 
-from board import Board
-
-
-# Поворот танка
-def blitRotate(surf, image, pos, originPos, angle):
-    w, h = image.get_size()
-    box = [pygame.math.Vector2(p) for p in [(0, 0), (w, 0), (w, -h), (0, -h)]]
-    box_rotate = [p.rotate(angle) for p in box]
-    min_box = (min(box_rotate, key=lambda p: p[0])[0], min(box_rotate, key=lambda p: p[1])[1])
-    max_box = (max(box_rotate, key=lambda p: p[0])[0], max(box_rotate, key=lambda p: p[1])[1])
-    pivot = pygame.math.Vector2(originPos[0], -originPos[1])
-    pivot_rotate = pivot.rotate(angle)
-    pivot_move = pivot_rotate - pivot
-    origin = (pos[0] - originPos[0] + min_box[0] - pivot_move[0], pos[1] - originPos[1] -
-              max_box[1] + pivot_move[1])
-    rotated_image = pygame.transform.rotate(image, angle)
-    surf.blit(rotated_image, origin)
-
-
-class Game_stage(Board):
-    def __init__(self, width, height):
-        super().__init__(width, height)
-        # параметры
-        self.hg_color = pygame.Color('black')
-        self.free_color = pygame.Color('gray')
-        self.blue_tem = pygame.Color('blue')
-        self.error_color = pygame.Color('red')
-        self.playing = False
-        self.time_for_map = 0
-
-    # затычка
-    def on_click(self, cell_coords):
-        pass
-
-    # отрисовка
-    def render(self, screen):
-        # по клеткам поля
-        for row in range(self.height):
-            for col in range(self.width):
-                rect = pygame.Rect(
-                    self.left + col * self.cell_size,
-                    self.top + row * self.cell_size,
-                    self.cell_size, self.cell_size
-                )
-                if self.time_for_map == w1 * h1:
-                    self.time_for_map = 0
-                if srt_map[self.time_for_map] == '0':
-                    pygame.draw.rect(screen, self.free_color, rect, 1)
-                    self.time_for_map += 1
-                elif srt_map[self.time_for_map] == '1':
-                    pygame.draw.rect(screen, self.hg_color, rect)
-                    self.time_for_map += 1
-                elif srt_map[self.time_for_map] == '3':
-                    pygame.draw.rect(screen, self.error_color, rect)
-                    self.time_for_map += 1
-                elif srt_map[self.time_for_map] == '2':
-                    pygame.draw.rect(screen, self.blue_tem, rect)
-                    self.time_for_map += 1
-                else:
-                    pygame.draw.rect(screen, self.error_color, rect)
-
 
 # цвета
 grey_color = pygame.Color('grey')
 black_color = pygame.Color('black')
 color_background = pygame.Color('black')
 color_triangle = pygame.Color('yellow')
+red_color = pygame.Color('red')
+tank_you = None
+tank_friend = None
 
 
 class Menu_Stage:
     def __init__(self, punkts=None):
         # параметры
         if not punkts:
-            punkts = [120, 140, u'Punkt', grey_color, black_color, 0]
-        self.punkts = punkts
+            punkts = [120, 140, u'point', grey_color, black_color, 0]
+        self.points = punkts
         self.free_color = pygame.Color('gray')
         self.image_bg = load_image('bg.png')
+        self.tank = load_image('tank.png')
+        self.tank = pygame.transform.rotate(self.tank, 90)
         window.blit(self.image_bg, (0, 0))
 
     # отрисовка
-    def render(self, surfase, font, num_punkt):
-        for i in self.punkts:
-            if num_punkt == i[5]:
-                surfase.blit(font.render(i[2], 1, i[4]), (i[0], i[1]))
+    def render(self, surfase, render_font, num_point):
+        for i in self.points:
+            if num_point == i[5]:
+                surfase.blit(render_font.render(i[2], 1, i[4]), (i[0], i[1]))
             else:
-                surfase.blit(font.render(i[2], 1, i[3]), (i[0], i[1]))
+                surfase.blit(render_font.render(i[2], 1, i[3]), (i[0], i[1]))
 
     # функция меню
     def menu(self):
         done = True
         pygame.font.init()
-        font_menu = pygame.font.SysFont('Metal Gear', 50)
+        font_menu = pygame.font.SysFont(None, 30)
         punkt = 0
         while done:
             mp = pygame.mouse.get_pos()
-            for i in self.punkts:
+            for i in self.points:
                 if i[0] < mp[0] < i[0] + 360 and i[1] < mp[1] < i[1] + 85:
                     if punkt != i[5]:
                         punkt = i[5]
                         window.blit(self.image_bg, (0, 0))
-
-                        # boom_sound.play()
-                    # pygame.draw.circle(window, color1, (i[0] + 300, i[1] + 20), 10)
+                    window.blit(self.tank, (i[0] + 150, i[1]))
 
             self.render(window, font_menu, punkt)
             for b in pygame.event.get():
@@ -115,19 +57,16 @@ class Menu_Stage:
                     sys.exit()
                 if b.type == pygame.KEYDOWN:
                     if b.key == pygame.K_UP:
-                        if punkt < len(self.punkts) - 1:
+                        if punkt < len(self.points) - 1:
                             punkt += 1
                     if b.key == pygame.K_DOWN:
                         if punkt > 0:
                             punkt -= 1
                 if b.type == pygame.MOUSEBUTTONDOWN and b.button == 1:
                     if punkt == 2:
-                        # pygame.time.wait(500)
                         done = False
-                        # sound2.play()
                     elif punkt == 1:
                         pass
-                        # sound2.play()
                     elif punkt == 0:
                         sys.exit()
             screen.blit(window, (0, 0))
@@ -145,22 +84,21 @@ def point(angle):
 class Loading_stage:
     def __init__(self, punkts2):
         # параметры
-        self.punkts = punkts2
+        self.points = punkts2
         self.free_color = pygame.Color('gray')
         self.time = 0
         self.color = pygame.Color('white')
         self.angle = 90
         self.speed = 1000
-        self.bg_imm = load_image('bg_for_loading.jpg')
 
     # отрисовка
-    def render(self, surfase, font, num_punkt):
-        for i in self.punkts:
-            if num_punkt == i[5]:
-                surfase.blit(font.render(i[2], 1, i[4]), (i[0], i[1]))
+    def render(self, surfase, render_font, num_point):
+        for i in self.points:
+            if num_point == i[5]:
+                surfase.blit(render_font.render(i[2], 1, i[4]), (i[0], i[1]))
             else:
-                surfase.blit(font.render(i[2], 1, i[3]), (i[0], i[1]))
-        window.blit(self.bg_imm, (0, 0))
+                surfase.blit(render_font.render(i[2], 1, i[3]), (i[0], i[1]))
+        window.fill((0, 0, 0))
         pygame.draw.circle(window, grey_color, point(self.angle - 15), 10)
         pygame.draw.circle(window, grey_color, point(self.angle - 15 + 120), 10)
         pygame.draw.circle(window, grey_color, point(self.angle - 15 + 240), 10)
@@ -190,57 +128,161 @@ class Loading_stage:
                 done = False
 
 
-class AnimatedSprite(pygame.sprite.Sprite):
-    def __init__(self, sheet, columns, rows, x, y, num_sp):
-        super().__init__(all_sprites)
-        self.frames = []
-        self.cut_sheet(sheet, columns, rows)
-        self.cur_frame = 1
-        self.image = self.frames[self.cur_frame]
-        self.rect = self.rect.move(x, y)
-        self.image = pygame.transform.scale(self.image, (cell_size - 1, cell_size - 1))
-        self.num_image = self.frames[num_sp]
-        self.num_image = pygame.transform.scale(self.num_image, (cell_size, cell_size))
+class Border(pygame.sprite.Sprite):
+    # строго вертикальный или строго горизонтальный отрезок
+    def __init__(self, x1, y1, x2, y2):
+        super().__init__(group_borders)
+        if x1 == x2:  # вертикальная стенка
+            self.add(vertical_borders)
+            self.image = pygame.Surface([0, y2 - y1])
+            self.rect = pygame.Rect(x1, y1, 0, y2 - y1)
+        else:  # горизонтальная стенка
+            self.add(horizontal_borders)
+            self.image = pygame.Surface([x2 - x1, 0])
+            self.rect = pygame.Rect(x1, y1, x2 - x1, 0)
 
-    def cut_sheet(self, sheet, columns, rows):
-        self.rect = pygame.Rect(0, 0, sheet.get_width() // columns,
-                                sheet.get_height() // rows)
-        for j in range(rows):
-            for i in range(columns):
-                frame_location = (self.rect.w * i, self.rect.h * j)
-                self.frames.append(sheet.subsurface(pygame.Rect(
-                    frame_location, self.rect.size)))
 
-    def update(self, posish):
-        if self.cur_frame > 7:
-            self.cur_frame = 1
-        self.cur_frame = (self.cur_frame + 1) % len(self.frames)
-        if posish == 0:
-            self.image = self.frames[self.cur_frame]
-            self.image = pygame.transform.rotate(self.image, 0)
-            self.image = pygame.transform.scale(self.image, (cell_size - 1, cell_size - 1))
-        elif posish == 1:
-            self.image = self.frames[self.cur_frame]
-            self.image = pygame.transform.rotate(self.image, 180)
-            self.image = pygame.transform.scale(self.image, (cell_size - 1, cell_size - 1))
-        elif posish == 2:
-            self.image = self.frames[self.cur_frame]
-            self.image = pygame.transform.rotate(self.image, 90)
-            self.image = pygame.transform.scale(self.image, (cell_size - 1, cell_size - 1))
-        elif posish == 3:
-            self.image = self.frames[self.cur_frame]
-            self.image = pygame.transform.rotate(self.image, 270)
-            self.image = pygame.transform.scale(self.image, (cell_size - 1, cell_size - 1))
+class WallHard(pygame.sprite.Sprite):
+    def __init__(self, group_sprites, wall_x, wall_y):
+        super().__init__(group_sprites)
+        self.image = wall_hard_image
+        self.rect = self.image.get_rect()
+        self.rect.x = wall_x
+        self.rect.y = wall_y
+
+
+class Wall(pygame.sprite.Sprite):
+    def __init__(self, group_sprites, wall_x, wall_y):
+        super().__init__(group_sprites)
+        self.image = wall_image
+        self.rect = self.image.get_rect()
+        self.rect.x = wall_x
+        self.rect.y = wall_y
+        self.state = [4, None, None]
+
+
+class Bullet(pygame.sprite.Sprite):
+    translate = {0: [(10, 0), 'top', (0, -2)], 180: [(10, 26), 'bottom', (0, 2)],
+                 90: [(0, 10), 'left', (-2, 0)], -90: [(26, 10), 'right', (2, 0)]}
+
+    def __init__(self, group_sprites, coord, tank_player):
+        super().__init__(group_sprites)
+        x, y = Bullet.translate[tank_player.angle][0]
+        self.coord = Bullet.translate[tank_player.angle][2]
+        self.image = pygame.transform.rotate(bullet_image, tank_player.angle)
+        self.rect = self.image.get_rect()
+        self.rect.x = coord[0] + x
+        self.rect.y = coord[1] + y
+        self.info = Bullet.translate[tank_player.angle][1]
+        self.tank = tank_player
+
+    def update(self):
+        self.rect.x += self.coord[0]
+        self.rect.y += self.coord[1]
+        if pygame.sprite.spritecollideany(self, horizontal_borders) or \
+                pygame.sprite.spritecollideany(self, vertical_borders) or \
+                pygame.sprite.spritecollideany(self, group_wall_hard):
+            self.kill()
+        if pygame.sprite.spritecollideany(self, group_wall):
+            for wall in pygame.sprite.spritecollide(self, group_wall, False):
+                if wall.state[0] == 4:
+                    wall.state = [2, self.info, opposite[self.info]]
+                    wall.image = load_image('2_' + self.info + '.png')
+                    if self.info == 'top':
+                        wall.rect = wall.rect_x, wall.rect_y, 16, 8
+                    if self.info == 'bottom':
+                        wall.rect = wall.rect_x, wall.rect_y + 8, 16, 8
+                    if self.info == 'right':
+                        wall.rect = wall.rect_x + 8, wall.rect_y, 8, 16
+                    if self.info == 'left':
+                        wall.rect = wall.rect_x, wall.rect_y, 8, 16
+                elif wall.state[0] == 2:
+                    if self.info in wall.state:
+                        wall.kill()
+                        continue
+                    elif self.info == 'top':
+                        if wall.state[1] == 'left':
+                            wall.image = load_image('14.png')
+                            wall.rect = (wall.rect[0], wall.rect[1], 8, 8)
+                        elif wall.state[1] == 'right':
+                            wall.image = load_image('23.png')
+                            wall.rect = (wall.rect[0], wall.rect[1], 8, 8)
+                    elif self.info == 'bottom':
+                        if wall.state[1] == 'left':
+                            wall.image = load_image('23.png')
+                            wall.rect = (wall.rect[0], wall.rect[1] + 8, 8, 8)
+                        elif wall.state[1] == 'right':
+                            wall.image = load_image('14.png')
+                            wall.rect = (wall.rect[0], wall.rect[1] + 8, 8, 8)
+                    elif self.info == 'right':
+                        if wall.state[1] == 'top':
+                            wall.image = load_image('23.png')
+                            wall.rect = (wall.rect[0] + 8, wall.rect[1], 8, 8)
+                        elif wall.state[1] == 'bottom':
+                            wall.image = load_image('14.png')
+                            wall.rect = (wall.rect[0] + 8, wall.rect[1], 8, 8)
+                    elif self.info == 'left':
+                        if wall.state[1] == 'top':
+                            wall.image = load_image('14.png')
+                            wall.rect = (wall.rect[0], wall.rect[1], 8, 8)
+                        elif wall.state[1] == 'bottom':
+                            wall.image = load_image('23.png')
+                            wall.rect = (wall.rect[0], wall.rect[1], 8, 8)
+                    wall.state = [1, None, None]
+                else:
+                    wall.kill()
+            self.kill()
+        if pygame.sprite.spritecollideany(self, group_tank):
+            for sprite in pygame.sprite.spritecollide(self, group_tank, False):
+                if sprite is not self.tank:
+                    sprite.kill()
+                    self.kill()
+
+
+class Tank(pygame.sprite.Sprite):
+    def __init__(self, group_sprites, coord, image, player):
+        super().__init__(group_sprites)
+        self.image = image
+        self.rect = self.image.get_rect()
+        self.rect.x = coord[0]
+        self.rect.y = coord[1]
+        self.angle = 0
+        self.player = player
+
+    def move(self, move_x, move_y, angle, image):
+        self.image = pygame.transform.rotate(image, angle)
+        self.angle = angle
+        if self.check(move_x, move_y):
+            self.rect.x += move_x
+            self.rect.y += move_y
+
+    def check(self, move_x, move_y):
+        self.rect.x += move_x
+        self.rect.y += move_y
+        if pygame.sprite.spritecollideany(self, horizontal_borders) or \
+                pygame.sprite.spritecollideany(self, vertical_borders) or \
+                pygame.sprite.spritecollideany(self, group_wall) or \
+                pygame.sprite.spritecollideany(self, group_wall_hard) or \
+                len(pygame.sprite.spritecollide(self, group_tank, False)) > 1:
+            self.rect.x -= move_x
+            self.rect.y -= move_y
+            return False
+        self.rect.x -= move_x
+        self.rect.y -= move_y
+        return True
+
+    def get_coord(self):
+        return self.rect.x, self.rect.y
 
 
 # загружаем pygame
 pygame.init()
-# звук
-boom_sound = pygame.mixer.Sound('data/boom.wav')
-# sound2 = pygame.mixer.Sound('data/one.ogg')
-# pygame.mixer.music.load('data/Test.mp3')
-# pygame.mixer.music.play()
 # работаем с файлом карты
+with open('data/map_code.txt', 'r', encoding='utf-8') as file:
+    size = width, height = [int(i[:2]) * 32 for i in file.readline().split(' ')]
+    list_edit = file.readline().split(',')
+    list_wall = [[int(list_edit[i]) for i in range(j * 20, (j + 1) * 20)]
+                 for j in range(20)]
 f = open('data/map_code.txt', 'r')
 w1, h1 = list(map(int, f.readline().split()))
 srt_map = f.read().strip().split(',')
@@ -248,44 +290,28 @@ srt_map = f.read().strip().split(',')
 clock = pygame.time.Clock()
 FPS = 30
 # размеры и параметры
-size_for_main = width1, height1 = 1024, 600
-center = (width1 // 1 - 95 + 1, height1 // 1 - 75 + 1)
+size_for_main = width1, height1 = 600, 600
+center = (300, 300)
 center_r = width1 // 2
 center_b = height1 // 2
 size2 = width2, height2 = 600, 600
 cell_size = width2 // w1
 cell_size2 = [int(width2 // w1), int(height2 // h1)]
-size = width, height = cell_size2[0] * w1, cell_size2[1] * h1
 free_color = pygame.Color('gray')
-punkts = [(center_r - 450, center_b, u'Play', (250, 250, 250), (0, 0, 0), 2),
-          (center_r - 450, center_b + 100, u'Settings', (250, 250, 250), (0, 0, 0), 1),
-          (center_r - 450, center_b + 200, u'Exit', (250, 250, 250), (0, 0, 0), 0)
+points = [(200, center_b, u'Играть', (250, 250, 250), red_color, 2),
+          (200, center_b + 50, u'Выбор карты', (250, 250, 250), red_color, 1),
+          (200, center_b + 100, u'Выход', (250, 250, 250), red_color, 0)
           ]
-punkts2 = [(130, 150, u'PanzerStorm', (250, 250, 30), (250, 30, 250), 0)]
+points2 = [(130, 150, u'', (250, 250, 30), (250, 30, 250), 0)]
 # создаём окна
 screen = pygame.display.set_mode(size_for_main)
 window = pygame.display.set_mode(size_for_main)
-
-class Border(pygame.sprite.Sprite):
-    # строго вертикальный или строго горизонтальный отрезок
-    def __init__(self, x1, y1, x2, y2):
-        super().__init__(all_sprites)
-        if x1 == x2:  # вертикальная стенка
-            self.add(vertical_borders)
-            self.image = pygame.Surface([1, y2 - y1])
-            self.rect = pygame.Rect(x1, y1, 1, y2 - y1)
-        else:  # горизонтальная стенка
-            self.add(horizontal_borders)
-            self.image = pygame.Surface([x2 - x1, 1])
-            self.rect = pygame.Rect(x1, y1, x2 - x1, 1)
 
 
 def load_image(name, colorkey=None):
     fullname = os.path.join('data', name)
     image = pygame.image.load(fullname).convert()
     if colorkey is not None:
-        if colorkey == -1:
-            colorkey = image.get_at((0, 0))
         image.set_colorkey((255, 255, 255))
     else:
         image = image.convert_alpha()
@@ -293,103 +319,109 @@ def load_image(name, colorkey=None):
 
 
 # вызываем
-# game = Menu_Stage(punkts)
-# game.menu()
-# load = Loading_stage(punkts2)
-# load.menu()
+game = Menu_Stage(points)
+game.menu()
+load = Loading_stage(points2)
+load.menu()
 # настраиваем доску
-window = pygame.display.set_mode(size)
-board = Game_stage(w1, h1)
-board.set_view(0, 0, cell_size)
+pygame.display.set_mode((320, 320))
 # запускаем
 all_sprites = pygame.sprite.Group()
 font = pygame.font.SysFont('Times New Roman', 50)
+direct_for_bullet = 11, 0
+pos = 100, 150
+info = [(10, 0), (0, -2), 0, 'top']
+info2 = [(10, 0), (0, -2), 0, 'top']
+opposite = {'left': 'right', 'right': 'left', 'top': 'bottom', 'bottom': 'top'}
+start_position = [(None, None), (None, None)]
 
-move = 1
-key_top, key_bottom, key_left, key_right = False, False, False, False
-keys = [key_top, key_bottom, key_left, key_right]
-values = {273: 'key_top', 274: 'key_bottom', 275: 'key_right', 276: 'key_left'}
-values_key = {'key_top': 'y - move', 'key_bottom': 'y + move',
-              'key_right': 'x + move', 'key_left': 'x - move'}
+tank_image_you = load_image('tank.png', -1)
+tank_image_friend = load_image('tank2.png', -1)
+wall_image = load_image('wall2.png')
+bullet_image = load_image('bullet.png', -1)
+wall_hard_image = load_image('wall_hard.png')
 
+group_bullet = pygame.sprite.Group()
+group_bullet2 = pygame.sprite.Group()
+group_tank = pygame.sprite.Group()
+group_borders = pygame.sprite.Group()
+group_wall_hard = pygame.sprite.Group()
+group_wall = pygame.sprite.Group()
+for row in range(20):
+    for col in range(20):
+        if list_wall[col][row] == 1:
+            Wall(group_wall, 16 * row, 16 * col)
+        elif list_wall[col][row] == 2:
+            tank_friend = Tank(group_tank, (16 * row + 3, 16 * col + 3), tank_image_friend, 2)
+            start_position[1] = (16 * row + 3, 16 * col + 3)
+        elif list_wall[col][row] == 3:
+            tank_you = Tank(group_tank, (16 * row + 3, 16 * col + 3), tank_image_you, 1)
+            start_position[0] = (16 * row + 3, 16 * col + 3)
 horizontal_borders = pygame.sprite.Group()
 vertical_borders = pygame.sprite.Group()
 Border(0, 0, width, 0)
 Border(0, height, width, height)
 Border(0, 0, 0, height)
 Border(width, 0, width, height)
+radius = 3
+move = 1
+key_top, key_bottom, key_left, key_right = False, False, False, False
+keys = [key_top, key_bottom, key_left, key_right]
+key_top2, key_bottom2, key_left2, key_right2 = False, False, False, False
+keys2 = [key_top2, key_bottom2, key_left2, key_right2]
+values = {273: 'key_top', 274: 'key_bottom', 275: 'key_right', 276: 'key_left'}
+values_key = {'key_top': 'y - move', 'key_bottom': 'y + move',
+              'key_right': 'x + move', 'key_left': 'x - move'}
+running = True
+fps = 100
+clock = pygame.time.Clock()
 
-walls = pygame.sprite.Group()
-wall = pygame.sprite.Sprite()
-wall.image = AnimatedSprite(load_image("kadr_tank.png", -1), 8, 4, 84, 84, 0).num_image
-wall.rect = wall.image.get_rect()
-wall.rect.x = 50
-wall.rect.y = 50
-walls.add(wall)
-wall = pygame.sprite.Sprite()
-wall.image = AnimatedSprite(load_image("kadr_tank.png", -1), 8, 4, 84, 84, 0).num_image
-wall.rect = wall.image.get_rect()
-wall.rect.x = 82
-wall.rect.y = 50
-walls.add(wall)
-wall = pygame.sprite.Sprite()
-wall.image = AnimatedSprite(load_image("kadr_tank.png", -1), 8, 4, 84, 84, 0).num_image
-wall.rect = wall.image.get_rect()
-wall.rect.x = 114
-wall.rect.y = 50
-walls.add(wall)
-wall = pygame.sprite.Sprite()
-wall.image = AnimatedSprite(load_image("kadr_tank.png", -1), 8, 4, 84, 84, 0).num_image
-wall.rect = wall.image.get_rect()
-wall.rect.x = 176
-wall.rect.y = 50
-walls.add(wall)
-wall = pygame.sprite.Sprite()
-wall.image = AnimatedSprite(load_image("kadr_tank.png", -1), 8, 4, 84, 84, 0).num_image
-wall.rect = wall.image.get_rect()
-wall.rect.x = 208
-wall.rect.y = 50
-walls.add(wall)
-
-done = False
-fps = 30
-count_frames = 2
-rect = AnimatedSprite(load_image("kadr_tank.png", -1), 8, 4, 84, 84, 0).rect
-
-while not done:
-    clock.tick(60)
-    screen.fill(0)
-    board.render(screen)
-    abuttons = pygame.key.get_pressed()
+while running:
+    button_pressed = pygame.key.get_pressed()
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
-            done = True
-    if abuttons[pygame.K_UP]:
-        rect[1] += -1
-        count_frames += 1
-        if count_frames % 6 == 0:
-            all_sprites.update(0)
-    elif abuttons[pygame.K_DOWN]:
-        rect[1] += 1
-        count_frames -= 1
-        if count_frames % 6 == 0:
-            all_sprites.update(1)
-    elif abuttons[pygame.K_LEFT]:
-        rect[0] -= 1
-        count_frames += 1
-        if count_frames % 6 == 0:
-            all_sprites.update(2)
-    elif abuttons[pygame.K_RIGHT]:
-        rect[0] += 1
-        count_frames += 1
-        if count_frames % 6 == 0:
-            all_sprites.update(3)
-    elif abuttons[pygame.KMOD_LSHIFT]:
-        print(1)
-        pass
-    all_sprites.draw(screen)
-    walls.draw(screen)
-    pygame.display.flip()
-    pygame.event.pump()
-
+            pygame.quit()
+            running = False
+        if event.type == pygame.KEYDOWN and event.key == 13:
+            if not group_bullet:
+                Bullet(group_bullet, tank_you.get_coord(), tank_you)
+        if event.type == pygame.KEYDOWN and event.key == 32:
+            if not group_bullet2:
+                Bullet(group_bullet2, tank_friend.get_coord(), tank_friend)
+    if button_pressed[pygame.K_UP]:
+        tank_you.move(0, -move, 0, tank_image_you)
+    elif button_pressed[pygame.K_DOWN]:
+        tank_you.move(0, move, 180, tank_image_you)
+    elif button_pressed[pygame.K_RIGHT]:
+        tank_you.move(move, 0, -90, tank_image_you)
+    elif button_pressed[pygame.K_LEFT]:
+        tank_you.move(-move, 0, 90, tank_image_you)
+    if button_pressed[pygame.K_w]:
+        tank_friend.move(0, -move, 0, tank_image_friend)
+    elif button_pressed[pygame.K_s]:
+        tank_friend.move(0, move, 180, tank_image_friend)
+    elif button_pressed[pygame.K_d]:
+        tank_friend.move(move, 0, -90, tank_image_friend)
+    elif button_pressed[pygame.K_a]:
+        tank_friend.move(-move, 0, 90, tank_image_friend)
+    if running:
+        screen.fill(pygame.color.Color('black'))
+        group_tank.draw(screen)
+        group_wall.draw(screen)
+        group_bullet.draw(screen)
+        group_bullet.update()
+        group_bullet2.draw(screen)
+        group_bullet2.update()
+        group_wall_hard.draw(screen)
+        pygame.display.flip()
+    clock.tick(fps)
+    if len(group_tank) < 2:
+        for tank in group_tank:
+            if tank.player == 1:
+                tank_friend = Tank(group_tank, start_position[1], tank_image_friend, 2)
+            elif tank.player == 2:
+                tank_you = Tank(group_tank, start_position[0], tank_image_you, 1)
+    if len(group_tank) == 0:
+        tank_you = Tank(group_tank, start_position[0], tank_image_you, 1)
+        tank_friend = Tank(group_tank, start_position[1], tank_image_friend, 2)
 pygame.quit()

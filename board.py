@@ -8,8 +8,8 @@ class Board:
         self.height = height
         self.board = [[0] * width for _ in range(height)]
         # значения по умолчанию
-        self.left = 10
-        self.top = 10
+        self.left = 32
+        self.top = 32
         self.cell_size = 30
         self.color = pygame.Color('white')
 
