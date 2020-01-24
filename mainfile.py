@@ -189,13 +189,13 @@ class Bullet(pygame.sprite.Sprite):
                     wall.state = [2, self.info, opposite[self.info]]
                     wall.image = load_image('2_' + self.info + '.png')
                     if self.info == 'top':
-                        wall.rect = wall.rect_x, wall.rect_y, 16, 8
+                        wall.rect = wall.rect.x, wall.rect.y, 16, 8
                     if self.info == 'bottom':
-                        wall.rect = wall.rect_x, wall.rect_y + 8, 16, 8
+                        wall.rect = wall.rect.x, wall.rect.y + 8, 16, 8
                     if self.info == 'right':
-                        wall.rect = wall.rect_x + 8, wall.rect_y, 8, 16
+                        wall.rect = wall.rect.x + 8, wall.rect.y, 8, 16
                     if self.info == 'left':
-                        wall.rect = wall.rect_x, wall.rect_y, 8, 16
+                        wall.rect = wall.rect.x, wall.rect.y, 8, 16
                 elif wall.state[0] == 2:
                     if self.info in wall.state:
                         wall.kill()
