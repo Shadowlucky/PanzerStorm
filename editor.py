@@ -82,7 +82,7 @@ pygame.init()
 # w, h = map(int, input().split())
 # file = input()
 w = h = 20  # Размер карты(всегда квадрат)
-file = 'data/map_code.txt'
+file = 'data/map_code2.txt'
 size = width, height = w * 20, h * 20
 screen = pygame.display.set_mode(size)
 back_color = pygame.Color('black')
@@ -129,6 +129,6 @@ while running:
         editor.get_click3(pygame.mouse.get_pos())
     screen.fill(back_color)
     editor.render(screen)
-    # pygame.display.flip()
+
 
 pygame.quit()

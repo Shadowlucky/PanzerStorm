@@ -1,15 +1,18 @@
 # импорты
 import os
 import sys
-import random
 
 import math
 import pygame
 
-from board import Board
+TIME = 0
 
 
+def timer(num):
+    time = num
 
+
+MAP_CONST = ('data/map_code.txt', 'data/map_code2.txt')
 # цвета
 grey_color = pygame.Color('grey')
 black_color = pygame.Color('black')
@@ -23,10 +26,13 @@ class Menu_Stage:
         # параметры
         if not punkts:
             punkts = [120, 140, u'Punkt', grey_color, black_color, 0]
+        pygame.display.set_caption('PanzerStorm')
         self.punkts = punkts
         self.free_color = pygame.Color('gray')
         self.image_bg = load_image('bg.png')
-        self.tank = load_image('tank.png')
+        self.tank = load_image('tank.png', -1)
+        self.wall = load_image('wall.png')
+        pygame.display.set_icon(self.wall)
         self.tank = pygame.transform.rotate(self.tank, 90)
         window.blit(self.image_bg, (0, 0))
 
@@ -68,12 +74,89 @@ class Menu_Stage:
                     if punkt == 2:
                         done = False
                     elif punkt == 1:
-                        pass
+                        map_st = Map_stage(punkts_for_map)
+                        map_st.menu()
                     elif punkt == 0:
                         sys.exit()
             screen.blit(window, (0, 0))
             pygame.display.flip()
 
+
+class Map_stage:
+    def __init__(self, punkts=None):
+        # параметры
+        if not punkts:
+            punkts = [120, 140, u'Punkt', grey_color, black_color, 0]
+        self.punkts = punkts
+        self.free_color = pygame.Color('gray')
+        window.fill((0, 0, 0))
+
+    # отрисовка
+    def render(self, surfase, font, num_punkt):
+        for i in self.punkts:
+            if num_punkt == i[5]:
+                surfase.blit(font.render(i[2], 1, i[4]), (i[0], i[1]))
+            else:
+                surfase.blit(font.render(i[2], 1, i[3]), (i[0], i[1]))
+
+    # функция меню
+    def menu(self):
+        done = True
+        pygame.font.init()
+        font_menu = pygame.font.SysFont(None, 60)
+        punkt = 0
+        while done:
+            mp = pygame.mouse.get_pos()
+            for i in self.punkts:
+                if i[0] < mp[0] < i[0] + 360 and i[1] < mp[1] < i[1] + 85:
+                    if punkt != i[5]:
+                        punkt = i[5]
+                        window.fill((0, 0, 0))
+
+            self.render(window, font_menu, punkt)
+            for b in pygame.event.get():
+                if b.type == pygame.QUIT:
+                    sys.exit()
+                if b.type == pygame.KEYDOWN:
+                    if b.key == pygame.K_UP:
+                        if punkt < len(self.punkts) - 1:
+                            punkt += 1
+                    if b.key == pygame.K_DOWN:
+                        if punkt > 0:
+                            punkt -= 1
+                if b.type == pygame.MOUSEBUTTONDOWN and b.button == 1:
+                    if punkt == 0:
+                        window.fill((0, 0, 0))
+                        TIME = 0
+                        done = False
+                        game.menu()
+                    elif punkt == 1:
+                        window.fill((0, 0, 0))
+                        TIME = 1
+                        done = False
+                        game.menu()
+                    elif punkt == 2:
+                        window.fill((0, 0, 0))
+                        timer(2)
+                        done = False
+                        game.menu()
+                    elif punkt == 3:
+                        window.fill((0, 0, 0))
+                        timer(3)
+                        done = False
+                        game.menu()
+                    elif punkt == 4:
+                        window.fill((0, 0, 0))
+                        timer(4)
+                        done = False
+                        game.menu()
+                    elif punkt == 5:
+                        window.fill((0, 0, 0))
+                        timer(5)
+                        done = False
+                        game.menu()
+            screen.blit(window, (0, 0))
+            pygame.display.flip()
 
 
 def point(angle):
@@ -162,6 +245,7 @@ class Wall(pygame.sprite.Sprite):
         self.rect.x = wall_x
         self.rect.y = wall_y
         self.state = [4, None, None]
+
 
 class Bullet(pygame.sprite.Sprite):
     translate = {0: [(10, 0), 'top', (0, -2)], 180: [(10, 26), 'bottom', (0, 2)],
@@ -280,12 +364,12 @@ class Tank(pygame.sprite.Sprite):
 # загружаем pygame
 pygame.init()
 # работаем с файлом карты
-with open('data/map_code.txt', 'r', encoding='utf-8') as file:
+with open(MAP_CONST[TIME], 'r', encoding='utf-8') as file:
     size = width, height = [int(i[:2]) * 32 for i in file.readline().split(' ')]
     list_edit = file.readline().split(',')
     list_wall = [[int(list_edit[i]) for i in range(j * 20, (j + 1) * 20)]
                  for j in range(20)]
-f = open('data/map_code.txt', 'r')
+f = open(MAP_CONST[TIME], 'r')
 w1, h1 = list(map(int, f.readline().split()))
 srt_map = f.read().strip().split(',')
 # работа с фпс
@@ -305,6 +389,13 @@ punkts = [(200, center_b, u'Играть', (250, 250, 250), red_color, 2),
           (200, center_b + 100, u'Выход', (250, 250, 250), red_color, 0)
           ]
 punkts2 = [(130, 150, u'', (250, 250, 30), (250, 30, 250), 0)]
+
+punkts_for_map = [(100, 50, u'map1', (250, 250, 250), red_color, 5),
+                  (100, 250, u'map2', (250, 250, 250), red_color, 4),
+                  (100, 450, u'map3', (250, 250, 250), red_color, 3),
+                  (400, 50, u'map4', (250, 250, 250), red_color, 2),
+                  (400, 250, u'map5', (250, 250, 250), red_color, 1),
+                  (400, 450, u'map6', (250, 250, 250), red_color, 0)]
 # создаём окна
 screen = pygame.display.set_mode(size_for_main)
 window = pygame.display.set_mode(size_for_main)
@@ -320,7 +411,6 @@ def load_image(name, colorkey=None):
     else:
         image = image.convert_alpha()
     return image
-
 
 
 # вызываем
