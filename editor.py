@@ -93,44 +93,8 @@ base_tem2_color = pygame.Color('red')
 image = load_image('wall.png')
 x, y = -16, -16
 running = True
-editor = Editor(w, h)
-editor.set_view(0, 0, 20)
 moving = True
 key = False
 key2 = False
-while running:
-    screen.blit(image, (x, y, 100, 100))
-    pygame.display.flip()
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
-        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-            key = True
-        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 3:
-            key2 = True
-        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 2:
-            editor.get_click2(event.pos)
-        elif event.type == pygame.MOUSEMOTION:
-            if moving:
-                x += event.rel[0]
-                y += event.rel[1]
-        if event.type == pygame.KEYDOWN and event.key == 32:
-            with open(file, 'w') as f:
-                print(w, h, file=f)
-                arr = []
-                for row in editor.board:
-                    arr += row
-                print(*arr, sep=',', file=f, end='')
-        if event.type == pygame.MOUSEBUTTONUP and event.button == 1:
-            key = False
-        if event.type == pygame.MOUSEBUTTONUP and event.button == 3:
-            key2 = False
-    if key:
-        editor.get_click(pygame.mouse.get_pos())
-    if key2:
-        editor.get_click3(pygame.mouse.get_pos())
-    screen.fill(back_color)
-    editor.render(screen)
-    # pygame.display.flip()
 
 pygame.quit()

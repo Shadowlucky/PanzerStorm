@@ -5,21 +5,16 @@ import sys
 import math
 import pygame
 
-TIME = 0
-
-
-def timer(num):
-    time = num
-
-
-MAP_CONST = ('data/map_code.txt', 'data/map_code2.txt')
 
 # цвета
+from editor import Editor
+
 grey_color = pygame.Color('grey')
 black_color = pygame.Color('black')
 color_background = pygame.Color('black')
 color_triangle = pygame.Color('yellow')
 red_color = pygame.Color('red')
+blue_color = pygame.Color('blue')
 tank_you = None
 tank_friend = None
 
@@ -49,9 +44,13 @@ class Menu_Stage:
 
     # функция меню
     def menu(self):
+
+        size = width, height = 600, 600
+        screen = pygame.display.set_mode(size)
         done = True
         pygame.font.init()
         font_menu = pygame.font.SysFont(None, 30)
+        text1 = font_menu.render('# чтобы поменять карту перезайдите', 1, (180, 0, 0))
         punkt = 0
         while done:
             mp = pygame.mouse.get_pos()
@@ -77,88 +76,63 @@ class Menu_Stage:
                     if punkt == 2:
                         done = False
                     elif punkt == 1:
-                        pass
+                        ed()
                     elif punkt == 0:
                         sys.exit()
+            window.blit(text1, (200, center_b + 70))
             screen.blit(window, (0, 0))
             pygame.display.flip()
 
 
-class Map_stage:
-    def __init__(self, punkts=None):
-        # параметры
-        if not punkts:
-            punkts = [120, 140, u'Punkt', grey_color, black_color, 0]
-        self.punkts = punkts
-        self.free_color = pygame.Color('gray')
-        window.fill((0, 0, 0))
-
-    # отрисовка
-    def render(self, surfase, font, num_punkt):
-        for i in self.punkts:
-            if num_punkt == i[5]:
-                surfase.blit(font.render(i[2], 1, i[4]), (i[0], i[1]))
-            else:
-                surfase.blit(font.render(i[2], 1, i[3]), (i[0], i[1]))
-
-    # функция меню
-    def menu(self):
-        done = True
-        pygame.font.init()
-        font_menu = pygame.font.SysFont(None, 60)
-        punkt = 0
-        while done:
-            mp = pygame.mouse.get_pos()
-            for i in self.punkts:
-                if i[0] < mp[0] < i[0] + 360 and i[1] < mp[1] < i[1] + 85:
-                    if punkt != i[5]:
-                        punkt = i[5]
-                        window.fill((0, 0, 0))
-
-            self.render(window, font_menu, punkt)
-            for b in pygame.event.get():
-                if b.type == pygame.QUIT:
-                    sys.exit()
-                if b.type == pygame.KEYDOWN:
-                    if b.key == pygame.K_UP:
-                        if punkt < len(self.punkts) - 1:
-                            punkt += 1
-                    if b.key == pygame.K_DOWN:
-                        if punkt > 0:
-                            punkt -= 1
-                if b.type == pygame.MOUSEBUTTONDOWN and b.button == 1:
-                    if punkt == 0:
-                        window.fill((0, 0, 0))
-                        TIME = 0
-                        done = False
-                        game.menu()
-                    elif punkt == 1:
-                        window.fill((0, 0, 0))
-                        TIME = 1
-                        done = False
-                        game.menu()
-                    elif punkt == 2:
-                        window.fill((0, 0, 0))
-                        timer(2)
-                        done = False
-                        game.menu()
-                    elif punkt == 3:
-                        window.fill((0, 0, 0))
-                        timer(3)
-                        done = False
-                        game.menu()
-                    elif punkt == 4:
-                        window.fill((0, 0, 0))
-                        timer(4)
-                        done = False
-                        game.menu()
-                    elif punkt == 5:
-                        window.fill((0, 0, 0))
-                        timer(5)
-                        done = False
-                        game.menu()
-            screen.blit(window, (0, 0))
-            pygame.display.flip()
+def ed():
+    image_bg = load_image('bg.png')
+    w = h = 20  # Размер карты(всегда квадрат)
+    file = 'data/map_code.txt'
+    image = load_image('wall.png')
+    x, y = 225, 350
+    running = True
+    size = width, height = w * 20, h * 20
+    window = pygame.display.set_mode(size)
+    editor = Editor(w, h)
+    editor.set_view(0, 0, 20)
+    moving = True
+    key = False
+    key2 = False
+    while running:
+        screen.blit(image, (x, y, 100, 100))
+        pygame.display.flip()
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                window.blit(image_bg, (0, 0))
+                running = False
+                game.menu()
+            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                key = True
+            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 3:
+                key2 = True
+            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 2:
+                editor.get_click2(event.pos)
+            elif event.type == pygame.MOUSEMOTION:
+                if moving:
+                    x += event.rel[0]
+                    y += event.rel[1]
+            if event.type == pygame.KEYDOWN and event.key == 32:
+                with open(file, 'w') as f:
+                    print(w, h, file=f)
+                    arr = []
+                    for row in editor.board:
+                        arr += row
+                    print(*arr, sep=',', file=f, end='')
+            if event.type == pygame.MOUSEBUTTONUP and event.button == 1:
+                key = False
+            if event.type == pygame.MOUSEBUTTONUP and event.button == 3:
+                key2 = False
+        if key:
+            editor.get_click(pygame.mouse.get_pos())
+        if key2:
+            editor.get_click3(pygame.mouse.get_pos())
+        screen.fill(black_color)
+        editor.render(screen)
 
 
 def point(angle):
