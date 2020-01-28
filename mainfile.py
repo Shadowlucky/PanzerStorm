@@ -44,8 +44,7 @@ class Menu_Stage:
 
     # функция меню
     def menu(self):
-
-        size = width, height = 600, 600
+        size = 600, 600
         screen = pygame.display.set_mode(size)
         done = True
         pygame.font.init()
@@ -89,9 +88,9 @@ def ed():
     w = h = 20  # Размер карты(всегда квадрат)
     file = 'data/map_code.txt'
     image = load_image('wall.png')
-    x, y = 225, 350
+    x, y = 238, 351
     running = True
-    size = width, height = w * 20, h * 20
+    size = w * 20, h * 20
     window = pygame.display.set_mode(size)
     editor = Editor(w, h)
     editor.set_view(0, 0, 20)
