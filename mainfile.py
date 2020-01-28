@@ -5,6 +5,14 @@ import sys
 import math
 import pygame
 
+TIME = 0
+
+
+def timer(num):
+    time = num
+
+
+MAP_CONST = ('data/map_code.txt', 'data/map_code2.txt')
 
 # цвета
 grey_color = pygame.Color('grey')
@@ -20,11 +28,14 @@ class Menu_Stage:
     def __init__(self, punkts=None):
         # параметры
         if not punkts:
-            punkts = [120, 140, u'point', grey_color, black_color, 0]
+            punkts = [120, 140, u'Punkt', grey_color, black_color, 0]
+        pygame.display.set_caption('PanzerStorm')
         self.points = punkts
         self.free_color = pygame.Color('gray')
         self.image_bg = load_image('bg.png')
-        self.tank = load_image('tank.png')
+        self.tank = load_image('tank.png', -1)
+        self.wall = load_image('wall.png')
+        pygame.display.set_icon(self.tank)
         self.tank = pygame.transform.rotate(self.tank, 90)
         window.blit(self.image_bg, (0, 0))
 
@@ -69,6 +80,83 @@ class Menu_Stage:
                         pass
                     elif punkt == 0:
                         sys.exit()
+            screen.blit(window, (0, 0))
+            pygame.display.flip()
+
+
+class Map_stage:
+    def __init__(self, punkts=None):
+        # параметры
+        if not punkts:
+            punkts = [120, 140, u'Punkt', grey_color, black_color, 0]
+        self.punkts = punkts
+        self.free_color = pygame.Color('gray')
+        window.fill((0, 0, 0))
+
+    # отрисовка
+    def render(self, surfase, font, num_punkt):
+        for i in self.punkts:
+            if num_punkt == i[5]:
+                surfase.blit(font.render(i[2], 1, i[4]), (i[0], i[1]))
+            else:
+                surfase.blit(font.render(i[2], 1, i[3]), (i[0], i[1]))
+
+    # функция меню
+    def menu(self):
+        done = True
+        pygame.font.init()
+        font_menu = pygame.font.SysFont(None, 60)
+        punkt = 0
+        while done:
+            mp = pygame.mouse.get_pos()
+            for i in self.punkts:
+                if i[0] < mp[0] < i[0] + 360 and i[1] < mp[1] < i[1] + 85:
+                    if punkt != i[5]:
+                        punkt = i[5]
+                        window.fill((0, 0, 0))
+
+            self.render(window, font_menu, punkt)
+            for b in pygame.event.get():
+                if b.type == pygame.QUIT:
+                    sys.exit()
+                if b.type == pygame.KEYDOWN:
+                    if b.key == pygame.K_UP:
+                        if punkt < len(self.punkts) - 1:
+                            punkt += 1
+                    if b.key == pygame.K_DOWN:
+                        if punkt > 0:
+                            punkt -= 1
+                if b.type == pygame.MOUSEBUTTONDOWN and b.button == 1:
+                    if punkt == 0:
+                        window.fill((0, 0, 0))
+                        TIME = 0
+                        done = False
+                        game.menu()
+                    elif punkt == 1:
+                        window.fill((0, 0, 0))
+                        TIME = 1
+                        done = False
+                        game.menu()
+                    elif punkt == 2:
+                        window.fill((0, 0, 0))
+                        timer(2)
+                        done = False
+                        game.menu()
+                    elif punkt == 3:
+                        window.fill((0, 0, 0))
+                        timer(3)
+                        done = False
+                        game.menu()
+                    elif punkt == 4:
+                        window.fill((0, 0, 0))
+                        timer(4)
+                        done = False
+                        game.menu()
+                    elif punkt == 5:
+                        window.fill((0, 0, 0))
+                        timer(5)
+                        done = False
+                        game.menu()
             screen.blit(window, (0, 0))
             pygame.display.flip()
 
@@ -299,7 +387,7 @@ cell_size = width2 // w1
 cell_size2 = [int(width2 // w1), int(height2 // h1)]
 free_color = pygame.Color('gray')
 points = [(200, center_b, u'Играть', (250, 250, 250), red_color, 2),
-          (200, center_b + 50, u'Выбор карты', (250, 250, 250), red_color, 1),
+          (200, center_b + 50, u'Редактор', (250, 250, 250), red_color, 1),
           (200, center_b + 100, u'Выход', (250, 250, 250), red_color, 0)
           ]
 points2 = [(130, 150, u'', (250, 250, 30), (250, 30, 250), 0)]

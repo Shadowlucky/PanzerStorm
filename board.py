@@ -30,24 +30,9 @@ class Board:
                     self.cell_size
                 )
 
-    # Реакция поля на события мыши
     # возвращает координаты клетки в виде кортежа
     def get_cell(self, mouse_pos):
         col = (mouse_pos[0] - self.left) // self.cell_size
         row = (mouse_pos[1] - self.top) // self.cell_size
         if 0 <= col < self.width and 0 <= row < self.height:
             return col, row
-
-    # как-то изменяет поле, опираясь на полученные координаты клетки
-    def on_click(self, cell_coords):
-        pass
-
-    def on_click2(self, cell_coords):
-        pass
-
-    # получает событие нажатия и вызывает первые два метода
-    def get_click(self, mouse_pos):
-        cell = self.get_cell(mouse_pos)
-        if cell:
-            self.on_click(cell)
-

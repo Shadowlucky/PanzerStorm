@@ -24,6 +24,8 @@ def get_cord():
 class Editor(Board):
     def __init__(self, width, height):
         super().__init__(width, height)
+        pygame.display.set_caption('Editor')
+        pygame.display.set_icon(load_image('wall.png'))
 
     def render(self, screen):
         for row in range(self.height):
