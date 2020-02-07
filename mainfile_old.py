@@ -5,21 +5,10 @@ import sys
 import math
 import pygame
 import time
+
+
+# цвета
 from editor import Editor
-
-def load_image(name, color_key=None):
-    fullname = os.path.join('data', name)
-    image = pygame.image.load(fullname).convert_alpha()
-    if color_key is not None:
-        if color_key == -1:
-            color_key = image.get_at((0, 0))
-        image.set_colorkey(color_key)
-    else:
-        image = image.convert_alpha()
-    return image
-
-
-
 
 grey_color = pygame.Color('grey')
 black_color = pygame.Color('black')
@@ -342,7 +331,6 @@ class Bullet(pygame.sprite.Sprite):
                       boom_1, ['bullet_boom', 1])
             self.kill()
 
-
 class Animation(pygame.sprite.Sprite):
     def __init__(self, group_sprites, coord, image, tag, rect_image=None):
         super().__init__(group_sprites)
@@ -387,7 +375,6 @@ class Animation(pygame.sprite.Sprite):
                     sprite.rect.y = sprite.tag[2][1] - 16
                 elif sprite.tag[1] >= 5:
                     sprite.kill()
-
 
 class Tank(pygame.sprite.Sprite):
     def __init__(self, group_sprites, coord, image, player, respawn):
@@ -461,21 +448,23 @@ class Tank(pygame.sprite.Sprite):
                     self.respawn = [0, 0]
 
 
+# загружаем pygame
 pygame.init()
-running = True
+# работаем с файлом карты
 with open('data/map_code.txt', 'r', encoding='utf-8') as file:
-    size = width, height = [int(i[:2]) * 16 for i in file.readline().split(' ')]
+    size = width, height = [int(i[:2]) * 32 for i in file.readline().split(' ')]
     list_edit = file.readline().split(',')
     list_wall = [[int(list_edit[i]) for i in range(j * 20, (j + 1) * 20)]
                  for j in range(20)]
-screen = pygame.display.set_mode(size)
 opposite = {'left': 'right', 'right': 'left', 'top': 'bottom', 'bottom': 'top'}
 start_position = [(None, None), (None, None)]
-
 f = open('data/map_code.txt', 'r')
 w1, h1 = list(map(int, f.readline().split()))
 srt_map = f.read().strip().split(',')
+# работа с фпс
+clock = pygame.time.Clock()
 FPS = 30
+# размеры и параметры
 size_for_main = width1, height1 = 600, 600
 center = (300, 300)
 center_r = width1 // 2
@@ -489,12 +478,37 @@ points = [(200, center_b, u'Играть', (250, 250, 250), red_color, 2),
           (200, center_b + 100, u'Выход', (250, 250, 250), red_color, 0)
           ]
 points2 = [(130, 150, u'', (250, 250, 30), (250, 30, 250), 0)]
+# создаём окна
+screen = pygame.display.set_mode(size_for_main)
 window = pygame.display.set_mode(size_for_main)
+
+
+def load_image(name, colorkey=None):
+    fullname = os.path.join('data', name)
+    image = pygame.image.load(fullname).convert()
+    if colorkey is not None:
+        image.set_colorkey((255, 255, 255))
+    else:
+        image = image.convert_alpha()
+    return image
+
+
+# вызываем
 game = Menu_Stage(points)
 game.menu()
 load = Loading_stage(points2)
 load.menu()
-window = pygame.display.set_mode(size)
+# настраиваем доску
+pygame.display.set_mode((320, 320))
+# запускаем
+all_sprites = pygame.sprite.Group()
+font = pygame.font.SysFont('Times New Roman', 50)
+direct_for_bullet = 11, 0
+pos = 100, 150
+info = [(10, 0), (0, -2), 0, 'top']
+info2 = [(10, 0), (0, -2), 0, 'top']
+
+
 tank_image_you = load_image('tank.png', -1)
 tank_image_friend = load_image('tank2.png', -1)
 wall_image = load_image('wall2.png')
@@ -527,15 +541,22 @@ for row in range(20):
         elif list_wall[col][row] == 3:
             tank_you = Tank(group_tank, (16 * row + 3, 16 * col + 3), tank_image_you, 1, 2)
             start_position[0] = (16 * row + 3, 16 * col + 3)
-
 horizontal_borders = pygame.sprite.Group()
 vertical_borders = pygame.sprite.Group()
 Border(0, 0, width, 0)
 Border(0, height, width, height)
 Border(0, 0, 0, height)
 Border(width, 0, width, height)
-
+radius = 3
 move = 1
+key_top, key_bottom, key_left, key_right = False, False, False, False
+keys = [key_top, key_bottom, key_left, key_right]
+key_top2, key_bottom2, key_left2, key_right2 = False, False, False, False
+keys2 = [key_top2, key_bottom2, key_left2, key_right2]
+values = {273: 'key_top', 274: 'key_bottom', 275: 'key_right', 276: 'key_left'}
+values_key = {'key_top': 'y - move', 'key_bottom': 'y + move',
+              'key_right': 'x + move', 'key_left': 'x - move'}
+running = True
 fps = 100
 clock = pygame.time.Clock()
 
